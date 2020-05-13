@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-	                /* Osnovnata funkcya na programata. Pokzazva glavnoto menu na programata.
+	                /* 123Osnovnata funkcya na programata. Pokzazva glavnoto menu na programata.
 	                   Potrbitelyat tyaabva da vyvede nyakoya ot trite tochki na menuto. */
 	char c;
 
