@@ -2,17 +2,53 @@
 using namaspece std;
 #define _CRT_SECURE_NO_WARNINGS
 
-//vkliuchvame slednite dopulnitelni header failove
 #include <sstream>
-#include <iostream>  // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s konzolata
-#include <fstream>   // fail v koito sa opisani vsi4ki funkcii i klasove za s vunshni failove
-#include <string>    // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s simvolni nizove
-#include <ctime>     // fail v koito sa opisani vsi4ki funkcii i klasove za obrabotka na data i vreme
-#include <iomanip>   // izpolzvame samo edna funkcia get_time ot tozi header fail, za vuvezhdane na data ot potrebitelq
-#include <vector>    // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s vector klasa
-#include <algorithm> // izpolzvame samo edna funkcia sort ot tozi header fail, za sortirane na vector masiv po opredeleno pole
+#include <iostream> 
+#include <fstream>   
+#include <string>    
+#include <ctime>    
+#include <iomanip>   
+#include <vector>    
+#include <algorithm>  
 
-int add_inv() {
+int show_items() {
+		/*
+		Publichna funkcia na klasa items_col, chrez koiato se izvezhda spisuk na vsichki vuvedeni artikuli zaedno s tehnite parametri
+		*/
+
+
+		cout << endl << "List of items:";
+		for (int i = 0; i < num; i++)
+			cout << endl << "Index:" << i << ",Item name:" << items[i].name << ",Unit of measurement:" << items[i].um << ",Default expire period:" << items[i].defexperiod << " months";
+
+		return 0;
+
+	}
+
+	item* get_item_by_index(int idx) {
+		
+		return &items[idx];
+	}
+
+
+int print_inv() {
+		
+		int i;
+		item* pitem;
+
+		build_inv(MAX_ITEMS);
+
+		cout << endl << "Warehouse inventory:";
+		for (i = 0; i < vinventory.size(); i++)
+			if (vinventory[i].qty != 0) {
+				pitem = ic.get_item_by_index(vinventory[i].itemid);
+				cout << endl << "Item:" << pitem->name << ", Warehouse Location:" << vinventory[i].wareloc << ", Expire Date:" << date_str(vinventory[i].expdate) << ", Quantity:" << vinventory[i].qty;
+			}
+
+		return 0;
+	}
+
+	int add_inv() {
 		/*
 		Publichna fukncia na klasa koiato dobavia nov zapis za zaprihozhdavane na artikuli v sklada.
 		*/
@@ -30,8 +66,7 @@ int add_inv() {
 		}
 
 		repeat = true;
-		//vuvezhdane ot potrebitelia i proverka na indeks na artikul
-		//potrebitelia mozhe da vidi spisak na vuvedenite artikuli s ?
+		
 		do {
 			cout << endl << "Enter item index[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -62,8 +97,7 @@ int add_inv() {
 			pitem = ic.get_item_by_index(iitemid);
 			cout << endl << "Item: " << pitem->name << " selected.";
 			irecdate = today();
-			//vuvezhdane ot potrebitelia i proverka na srok na godnost
-			//po podrazbirane se predlaga sroka na godnost vuveden za dadenia artikul
+			
 			do {
 				cout << endl << "Enter expire period in months[. cancel, < back, <ENTER> default " << pitem->defexperiod << " months]: ";
 				getline(cin, inp);
@@ -82,7 +116,7 @@ int add_inv() {
 				}
 
 				iexpdate = build_expdate(irecdate, iexperiod);
-				//vuvezhdane ot potrebitelia i proverka na ime na proizvoditel
+				
 				do {
 					cout << endl << "Enter producer name[. cancel, < back]: ";
 					getline(cin, inp);
@@ -91,7 +125,6 @@ int add_inv() {
 					else if (inp == "<") break;
 					else iproducer = inp;
 
-					//vuvezhdane ot potrebitelia i proverka na kolichestvo za zaprihozhdavane
 					do {
 						cout << endl << "Enter quantity to add[. cancel, < back]: ";
 						getline(cin, inp);
@@ -134,9 +167,6 @@ int add_inv() {
 							continue;
 						}
 
-						//vuvezhdane ot potrebitelia i proverka na skladovo miasto
-						//na ekrana se izvezhdat vskichki skladovi lokacii s podobna data na godnost
-						//po podrazbirane se predlaga skladovo miasto s nai nisuk indeks
 						do {
 							cout << endl << "Available warehouse locations with same expiration date:";
 							for (i = 0; i < vinventory.size(); i++)
@@ -173,7 +203,7 @@ int add_inv() {
 									continue;
 								}
 							}
-							//vuvezhdane ot potrebitelia i proverka na dopulnitelni zabelezhki kum zapisa
+							
 							do {
 								cout << endl << "Enter additional notes for the record[. cancel, < back]: ";
 								getline(cin, inp);
@@ -213,9 +243,7 @@ int add_inv() {
 	}
 
 	int remove_inv() {
-		/*
-		Publichna fukncia na klasa koiato dobavia nov zapis za izpisvane na artikuli ot sklada.
-		*/
+	
 		item* pitem;
 		bool repeat;
 		int i, iitemid, iwareloc, iunloadid;
@@ -223,15 +251,14 @@ int add_inv() {
 		string inp, iproducer, inotes;
 		float iqty;
 
-		//proverka dali veche ne dostignat maksimalnia broi zapisi opredelen ot konstantata MAX_RECS
+		
 		if (num >= cap) {
 			cout << endl << "Maximum number of records already entered!";
 			return 0;
 		}
 
 		repeat = true;
-		//vuvezhdane ot potrebitelia i proverka na indeks na artikul
-		//potrebitelia mozhe da vidi spisak na vuvedenite artikuli s ?			
+		
 		do {
 			cout << endl << "Enter item index[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -269,9 +296,7 @@ int add_inv() {
 
 			irecdate = today();
 
-			//vuvezhdane ot potrebitelia i proverka na skladovo miasto
-			//na ekrana se izvezhdat vskichki skladovi lokacii s polozhitelni nalichnosti
-			//po podrazbirane se predlaga skladovo miasto s nalichnost chiato data na godnost izticha nai skoro
+			
 			do {
 				cout << endl << "Available quantities in different warehouse locations:";
 				for (i = 0; i < vinventory.size(); i++)
@@ -538,7 +563,7 @@ int add_inv() {
 
 	bool load_data() {
 		/*
-		Publichna funkcia na klasa records_col, koiato zarezhda danni za artikulite ot vunshniq fail records.txt.
+		Publichna funkcia na klasa records_col, koiato zarezhda danni za zapisite v sklada ot vunshniq fail records.txt.
 		Failut se iz4ita liniq po liniq i vsiaka linia se razbiva na sustavnite i poleta.
 		Ako vuznikne greshka se izvezhda na ekrana tochno koia linia i pole sa greshni, sled koeto programata spira tai kato
 		osnovniq fail records.txt e povreden. Vsichki poleta na zapisite za zaprhiozhdavania i izpisvania se proveriavat.
@@ -726,6 +751,41 @@ int records_menu() {
 
 
 	} while (c != '6');
+
+	return 0;
+}
+
+int items_menu() {
+	/*
+	Funkcia koiato pokzazva menuto za obrabotka na artikulite v sklada.
+	Potrbiteliat triabva da vuvede niakoia ot chetirite tochki na menuto.
+	*/
+	char c;
+
+	do {
+		cout << endl;
+		cout << "-------------=Items Menu=-------------" << endl;
+		cout << "1.Insert Item" << endl;
+		cout << "2.List Items" << endl;
+		cout << "3.Edit Item" << endl;
+		cout << "4.Back" << endl;
+
+		cin.get(c);
+		if (c != '\n') cin.ignore(256, '\n');
+
+		switch (c) {
+		case '1':
+			ic.input_item();
+			break;
+		case '2':
+			ic.show_items();
+			break;
+		case '3':
+			ic.edit_item();
+			break;
+		}
+
+	} while (c != '4');
 
 	return 0;
 }
