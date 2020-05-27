@@ -11,13 +11,292 @@ using namaspece std;
 #include <vector>    
 #include <algorithm>  
 
-int show_items() {
-		/*
-		Publichna funkcia na klasa items_col, chrez koiato se izvezhda spisuk na vsichki vuvedeni artikuli zaedno s tehnite parametri
-		*/
+
+bool IsLeapYear(int year)
+{
+	
+	if (year % 4 != 0) return false;
+	if (year % 400 == 0) return true;
+	if (year % 100 == 0) return false;
+	return true;
+}
+
+time_t build_expdate(time_t irecdate, int experiod) {
+	
+	struct tm ti;
+	int d, m, y;
+	int daysInMonths[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+	date_info(irecdate, &ti);
+
+	d = ti.tm_mday;
+	m = ti.tm_mon;
+	y = ti.tm_year;
+
+	y = y + experiod / 12;
+	m = m + experiod % 12;
+
+	if (m > 11)
+	{
+		y += 1;
+		m -= 12;
+	}
+
+	int days = daysInMonths[m];
+
+	if (m == 1 && IsLeapYear(y)) days += 1;
+
+	if (d > days) {
+		m++;
+		if (m > 11) m = 0;
+		d = d - days;
+	}
+
+	ti.tm_mday = d;
+	ti.tm_mon = m;
+	ti.tm_year = y;
+	return mktime(&ti);
+}
+
+
+struct item {
+	string name;
+	string um;
+	int defexperiod;
+};
+
+
+class items_col {
+
+	
+private:
+	item* items; 
+
+
+public:
+	int cap; 
+	int num; 
+
+	items_col(int pcap) {
+		
+		cap = pcap;
+		num = 0;
+		items = new item[cap]; 
+	}
+
+	~items_col() {
+		
+
+		
+		delete[] items;
+	}
+
+	int input_item() {
+		
+		string inp, iname, ium;
+		int i, iexp;
+		bool repeat;
+		string um[] = { "pcs","kg","g","m","cm" };
+
+		if (num >= cap) {
+			cout << endl << "Maximum number of items already entered!";
+			return 0;
+		}
+
+		repeat = true;
+
+		do {
+			cout << endl << "Item name[. cancel, < back]: ";
+			getline(cin, inp);
+
+			if (inp == ".") return 0;
+			else if (inp == "<") break;
+			else if (inp == "") {
+				cout << endl << "Item name cannot be empty!";
+				continue;
+			}
+
+			for (i = 0; i < num; i++)
+				if (items[i].name == inp)
+					break;
+
+			if (i < num) {
+				cout << endl << "Item name already exist!";
+				continue;
+			}
+
+			iname = inp;
+
+			
+			do {
+				cout << endl << "Unit of measurement[. cancel, < back]: ";
+				getline(cin, inp);
+
+				if (inp == ".") return 0;
+				else if (inp == "<") break;
+
+				for (i = 0; i < sizeof(um) / sizeof(um[0]); i++) if (inp == um[i]) break;
+				if (i >= sizeof(um) / sizeof(um[0])) {
+					cout << endl << "Wrong unit of measurement!";
+					continue;
+				}
+
+				ium = um[i];
+
+				
+				do {
+					cout << endl << "Default expire period in months[. cancel, < back]: ";
+					getline(cin, inp);
+
+					if (inp == ".") return 0;
+					else if (inp == "<") break;
+
+					try {
+						iexp = stoi(inp);
+					}
+					catch (...) {
+						cout << endl << "Invalid default expire period!";
+						continue;
+					}
+
+					
+					items[num].name = iname;
+					items[num].um = ium;
+					items[num].defexperiod = iexp;
+
+					cout << endl << "Index: " << num << ", Item name: " << iname << ", Unit of measurement: " << ium << ", Expire period in months: " << iexp;
+					cout << endl << "Successfully saved!";
+
+					num++;
+
+					getline(cin, inp);
+					repeat = false;
+
+				} while (repeat);
+			} while (repeat);
+		} while (repeat);
+
+		return 0;
+
+	}
+
+	int edit_item() {
+	
+		bool repeat;
+		int i, iitemid, iexp;
+		string inp, iname, ium;
+		string um[] = { "pcs","kg","g","m","cm" };
+
+		repeat = true;
+
+		
+		do {
+			cout << endl << "Enter item index to edit[. cancel, < back, ? list of items]: ";
+			getline(cin, inp);
+
+			if (inp == ".") return 0;
+			else if (inp == "<") break;
+			else if (inp == "?") {
+				show_items();
+				continue;
+			}
+			else {
+				try {
+					iitemid = stoi(inp);
+				}
+				catch (...) {
+					cout << endl << "Invalid item index!";
+					continue;
+				}
+
+				if (iitemid >= num) {
+					cout << endl << "Invalid item index!";
+					continue;
+				}
+			}
+
+							
+			do {
+				cout << endl << "Enter new item name[. cancel, < back, ENTER remains " << items[iitemid].name << "]: ";
+				getline(cin, inp);
+
+				if (inp == ".") return 0;
+				else if (inp == "<") break;
+				else if (inp == "") iname = items[iitemid].name;
+				else {
+					for (i = 0; i < num; i++)
+						if (items[i].name == inp)
+							break;
+
+					if (i < num) {
+						cout << endl << "Item name already exist!";
+						continue;
+					}
+
+					iname = inp;
+				}
+				
+				do {
+					cout << endl << "Enter new unit of measurement[. cancel, < back, ENTER remains " << items[iitemid].um << "]: ";
+					getline(cin, inp);
+
+					if (inp == ".") return 0;
+					else if (inp == "<") break;
+					else if (inp == "") ium = items[iitemid].um;
+					else {
+						for (i = 0; i < sizeof(um) / sizeof(um[0]); i++) if (inp == um[i]) break;
+						if (i >= sizeof(um) / sizeof(um[0])) {
+							cout << endl << "Wrong unit of measurement!";
+							continue;
+						}
+						ium = inp;
+					}
+
+					 
+					do {
+						cout << endl << "Enter new default expire period[. cancel, < back, ENTER remains " << items[iitemid].defexperiod << " months]: ";
+						getline(cin, inp);
+
+						if (inp == ".") return 0;
+						else if (inp == "<") break;
+						else if (inp == "") iexp = items[iitemid].defexperiod;
+						else {
+							try {
+								iexp = stoi(inp);
+							}
+							catch (...) {
+								cout << endl << "Invalid default expire period!";
+								continue;
+							}
+						}
+
+						
+						items[iitemid].name = iname;
+						items[iitemid].um = ium;
+						items[iitemid].defexperiod = iexp;
+
+						cout << endl << "Index:" << iitemid << ",Item name:" << iname << ",Unit of measurement:" << ium << ",Expire period in months:" << iexp;
+						cout << endl << "Successfully updated!";
+
+						getline(cin, inp);
+
+						repeat = false;
+
+					} while (repeat);
+				} while (repeat);
+			} while (repeat);
+		} while (repeat);
+
+		return 0;
+	}
+
+	int show_items() {
+		
 
 
 		cout << endl << "List of items:";
+
+		
 		for (int i = 0; i < num; i++)
 			cout << endl << "Index:" << i << ",Item name:" << items[i].name << ",Unit of measurement:" << items[i].um << ",Default expire period:" << items[i].defexperiod << " months";
 
@@ -26,12 +305,246 @@ int show_items() {
 	}
 
 	item* get_item_by_index(int idx) {
+		blichna funkcia na klasa items_col, koiato vrushta ukazatel kum artikul s index raven na parametura idx
 		
 		return &items[idx];
 	}
 
+	bool save_data() {
+*/
 
-int print_inv() {
+		char sep = '_';
+		int i;
+		ofstream fs;
+
+		
+		fs.open("items.txt");
+
+		if (fs.fail()) return false;
+
+		for (i = 0; i < num; i++)
+			fs << i << sep << items[i].name << sep << items[i].um << sep << items[i].defexperiod << endl;
+		fs.close();
+		return true;
+	}
+
+	bool load_data() {
+		
+		int i, j, iitemid, iexp;
+		string line, inp, iname, ium;
+		string um[] = { "pcs","kg","g","m","cm" };
+		ifstream fs;
+
+		
+		fs.open("items.txt");
+		if (fs.fail()) return true;
+		i = 0;
+		while (!fs.eof()) {
+			if (num >= MAX_ITEMS) {
+				cout << endl << "Maximum number of items reached at line " << i << " in file items.txt!";
+				return false;
+			}
+
+			i++;
+			getline(fs, line);
+			if (line == "") continue;
+			istringstream ss(line);
+
+			//proverka na indexa na artikula
+			if (getline(ss, inp, '_')) {
+				try {
+					iitemid = stoi(inp);
+				}
+				catch (...) {
+					cout << endl << "Invalid item id at line " << i << " in file items.txt!";
+					return false;
+				}
+				if (iitemid != num) {
+					cout << endl << "Invalid item id at line " << i << " in file items.txt! Found " << iitemid << " expected " << num;
+					return false;
+				}
+			}
+			else {
+				cout << endl << "Wrong number of fields at line " << i << " in file items.txt!";
+				return false;
+			}
+
+			//proverka na imeto na artikula
+			if (getline(ss, inp, '_')) {
+				if (inp == "") {
+					cout << endl << "Invalid item name at line " << i << " in file items.txt!";
+					return false;
+				}
+
+				for (j = 0; j < num; j++)
+					if (inp == items[j].name)
+						break;
+
+				if (j < 0) {
+					cout << endl << "Duplicate item name at line " << i << " in file items.txt!";
+					return false;
+				}
+
+				iname = inp;
+			}
+			else {
+				cout << endl << "Wrong number of fields at line " << i << " in file items.txt!";
+				return false;
+			}
+
+			
+			if (getline(ss, inp, '_')) {
+				if (inp == "") {
+					cout << endl << "Invalid item unit of measurement at line " << i << " in file items.txt!";
+					return false;
+				}
+
+				for (j = 0; j < sizeof(um) / sizeof(um[0]); j++)
+					if (inp == um[j])
+						break;
+
+				if (j >= sizeof(um) / sizeof(um[0])) {
+					cout << endl << "Invalid item unit of measurement at line " << i << " in file items.txt!";
+					return false;
+				}
+
+				ium = inp;
+			}
+			else {
+				cout << endl << "Wrong number of fields at line " << i << " in file items.txt!";
+				return false;
+			}
+
+			
+			if (getline(ss, inp, '_')) {
+				try {
+					iexp = stoi(inp);
+				}
+				catch (...) {
+					cout << endl << "Invalid default expire period at line " << i << " in file items.txt!";
+					return false;
+				}
+			}
+			else {
+				cout << endl << "Wrong number of fields at line " << i << " in file items.txt!";
+				return false;
+			}
+
+			//sled kato poletata sa provereni se zapisvat v masiva items
+			items[num].name = iname;
+			items[num].um = ium;
+			items[num].defexperiod = iexp;
+			num++;
+		}
+
+		fs.close();
+		return true;
+	}
+
+
+};
+
+//inicializira se obekt ic ot klas items_col
+items_col ic(MAX_ITEMS);
+
+//struktura koiato sudurzha dannite za otdelnite zaprihozhdavania i izpisvania ot sklada
+//dannite vkliuchvat itemid - indeks na artikul s dannite se svurzvat s drugiat osnoven masiv items
+//recdate - data na zapisa
+//expdate - data na godnost na artikula
+//producer - proizvoditel na artikula
+//wareloc - skladovo miasto
+//qty - kolichestvo ot artikula koeto e zaprihodeno ili izpisano saotvetno mozh da bude polozhitelno ili tricatelno
+//notes - zabelezhki kym zapisa
+struct record {
+	int itemid;
+	time_t recdate;
+	time_t expdate;
+	string producer;
+	int wareloc;
+	float qty;
+	string notes;
+};
+
+
+struct inventory {
+	int itemid;
+	int wareloc;
+	time_t expdate;
+	float qty;
+};
+
+
+bool sortby_item_expiredate(inventory a, inventory b)
+{
+	if (a.itemid == b.itemid) return a.expdate < b.expdate;
+	else return a.itemid < b.itemid;
+}
+
+/
+class records_col {
+	
+private:
+	
+	record* records;
+
+	
+	vector<inventory> vinventory;
+
+	int build_inv(int itemid) {
+		
+		int i, j;
+		inventory rinventory;
+
+		vinventory.clear();
+
+		for (i = 0; i < num; i++) {
+			if (itemid < MAX_ITEMS && itemid != records[i].itemid) continue;
+
+			rinventory.itemid = records[i].itemid;
+			rinventory.expdate = records[i].expdate;
+			rinventory.wareloc = records[i].wareloc;
+			rinventory.qty = records[i].qty;
+
+
+			for (j = 0; j < vinventory.size(); j++) {
+				if (rinventory.itemid < vinventory[j].itemid) break;
+				if (rinventory.itemid == vinventory[j].itemid && rinventory.wareloc <= vinventory[j].wareloc) break;
+			}
+
+			if (j < vinventory.size()) {
+				if (rinventory.itemid == vinventory[j].itemid && rinventory.wareloc == vinventory[j].wareloc)
+					vinventory[j].qty += rinventory.qty;
+				else
+					vinventory.insert(vinventory.begin() + j, rinventory);
+
+			}
+			else
+				vinventory.push_back(rinventory);
+
+		}
+		return 0;
+	}
+
+		
+public:
+	
+	int cap;
+	
+	int num;
+
+	
+	records_col(int pcap) {
+		cap = pcap;
+		num = 0;
+		records = new record[cap];
+	}
+
+	
+	~records_col() {
+		delete[] records;
+	}
+
+	int print_inv() {
 		
 		int i;
 		item* pitem;
@@ -49,9 +562,7 @@ int print_inv() {
 	}
 
 	int add_inv() {
-		/*
-		Publichna fukncia na klasa koiato dobavia nov zapis za zaprihozhdavane na artikuli v sklada.
-		*/
+		
 		item* pitem;
 		bool repeat, warelocavail;
 		int i, j, iitemid, iexperiod, iwareloc, idefwareloc;
@@ -59,7 +570,7 @@ int print_inv() {
 		string inp, iproducer, inotes;
 		float iqty;
 
-		//proverka dali veche ne dostignat maksimalnia broi zapisi opredelen ot konstantata MAX_RECS
+		
 		if (num >= cap) {
 			cout << endl << "Maximum number of records already entered!";
 			return 0;
@@ -117,7 +628,6 @@ int print_inv() {
 
 				iexpdate = build_expdate(irecdate, iexperiod);
 				
-				do {
 					cout << endl << "Enter producer name[. cancel, < back]: ";
 					getline(cin, inp);
 
@@ -125,6 +635,7 @@ int print_inv() {
 					else if (inp == "<") break;
 					else iproducer = inp;
 
+					
 					do {
 						cout << endl << "Enter quantity to add[. cancel, < back]: ";
 						getline(cin, inp);
@@ -167,6 +678,7 @@ int print_inv() {
 							continue;
 						}
 
+						
 						do {
 							cout << endl << "Available warehouse locations with same expiration date:";
 							for (i = 0; i < vinventory.size(); i++)
@@ -203,7 +715,7 @@ int print_inv() {
 									continue;
 								}
 							}
-							
+							//vuvezhdane ot potrebitelia i proverka na dopulnitelni zabelezhki kum zapisa
 							do {
 								cout << endl << "Enter additional notes for the record[. cancel, < back]: ";
 								getline(cin, inp);
@@ -212,9 +724,7 @@ int print_inv() {
 								else if (inp == "<") break;
 								else inotes = inp;
 
-								//sled kato vsichki parametri na zapisa sa vuvedeni i provereni
-								//te se zapisvat kato novo zaprihozhdavane v masiva s skladovi zapisi records;
-								//potrebitelia se informira za uspeshno napravenia zapis
+								
 								records[num].itemid = iitemid;
 								records[num].recdate = irecdate;
 								records[num].expdate = iexpdate;
@@ -243,7 +753,7 @@ int print_inv() {
 	}
 
 	int remove_inv() {
-	
+		
 		item* pitem;
 		bool repeat;
 		int i, iitemid, iwareloc, iunloadid;
@@ -258,7 +768,7 @@ int print_inv() {
 		}
 
 		repeat = true;
-		
+					
 		do {
 			cout << endl << "Enter item index[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -296,7 +806,7 @@ int print_inv() {
 
 			irecdate = today();
 
-			
+			/
 			do {
 				cout << endl << "Available quantities in different warehouse locations:";
 				for (i = 0; i < vinventory.size(); i++)
@@ -333,8 +843,8 @@ int print_inv() {
 
 					iunloadid = i;
 				}
-				//vuvezhdane ot potrebitelia i proverka na kolichestvo za izpisvane, to ne triabva da e po goliamo ot 
-				//nalichnoto v momenta na goreopredelenoto skladovo miasto
+				 
+				
 				do {
 					cout << endl << "Enter quantity to remove from location[. cancel, < back]: ";
 					getline(cin, inp);
@@ -361,7 +871,7 @@ int print_inv() {
 						}
 					}
 
-					//vuvezhdane ot potrebitelia i proverka na dopulnitelni zabelezhki kum zapisa
+				
 					do {
 						cout << endl << "Enter additional notes for the record[. cancel, < back]: ";
 						getline(cin, inp);
@@ -370,9 +880,7 @@ int print_inv() {
 						else if (inp == "<") break;
 						else inotes = inp;
 
-						//sled kato vsichki parametri na zapisa sa vuvedeni i provereni
-						//te se zapisvat kato novo izpisvane v masiva s skladovi zapisi records;
-						//potrebitelia se informira za uspeshno napravenia zapis
+					
 						records[num].itemid = iitemid;
 						records[num].recdate = irecdate;
 						records[num].expdate = vinventory[iunloadid].expdate;
@@ -400,10 +908,7 @@ int print_inv() {
 	}
 
 	int show_records() {
-		/*
-		Publichna fukncia na klasa koiato pokzava vsizhki zapisi ot masiva records ,koito imat data
-		na zapis v period s nachalna i kraina data opredeleni ot potrebitelia.
-		*/
+		
 		int i;
 		time_t istart, iend;
 		struct tm ti_start, ti_end;
@@ -411,7 +916,7 @@ int print_inv() {
 		string inp;
 		bool repeat;
 
-		//vuvezhdane i proverka na nachalnata data na perioda spravkata
+		
 		do {
 			istart = time(0);
 			date_info(istart, &ti_start);
@@ -439,7 +944,7 @@ int print_inv() {
 				istart = mktime(&ti_start);
 			}
 
-			//vuvezhdane i proverka na krainata data na perioda spravkata				
+						
 			do {
 				iend = time(0);
 				date_info(iend, &ti_end);
@@ -495,9 +1000,7 @@ int print_inv() {
 	}
 
 	int clean_inv() {
-		/*
-		Publichna fukncia na klasa, koiato izpisva vsichki nalichnosti s iztekul srok na godnost ot sklada
-		*/
+	
 		int i;
 		time_t irecdate, iexpdate;
 		string inp;
@@ -506,12 +1009,10 @@ int print_inv() {
 		irecdate = today();
 		iexpdate = irecdate;
 
-		//generirat se nalichnostite v sklada po artikul i skladovo miasto
-		build_inv(MAX_ITEMS);
-		//nalichnostite se sortirat po artikul i data na godnost
-		sort(vinventory.begin(), vinventory.end(), sortby_item_expiredate);
 		
-		//na ekrana se izvezhdat vsichki nalichnosti s iztekul srok na godnost
+		build_inv(MAX_ITEMS);
+		
+		sort(vinventory.begin(), vinventory.end(), sortby_item_expiredate);
 		cout << endl << "The following items are expired:";
 		for (i = 0; i < vinventory.size(); i++)
 			if (vinventory[i].qty > 0 && vinventory[i].expdate <= iexpdate) {
@@ -519,12 +1020,10 @@ int print_inv() {
 				cout << endl << "Item:" << pitem->name << ", Warehouse Location:" << vinventory[i].wareloc << ", Expire Date:" << date_str(vinventory[i].expdate) << ", Quantity:" << vinventory[i].qty;
 			}
 
-		//potrebitelia trabva da potvurdi izpisvaneto
 		cout << endl << "Are you sure you want to clear them? [Y/N]:";
 		getline(cin, inp);
 
-		//sled kato potrebitelia potvurdi spisuka s izteklite nalichnosti ot vektornia masiv vinventory
-		//se izbrozhda i se zapisvat kato razhod v masiva records
+		
 		if (inp == "y" || inp == "Y") {
 			for (i = 0; i < vinventory.size(); i++)
 				if (vinventory[i].qty > 0 && vinventory[i].expdate <= iexpdate) {
@@ -543,10 +1042,7 @@ int print_inv() {
 	}
 
 	bool save_data() {
-		/*
-		Publichna funkcia na klasa records_col, koiato zapazva vsichki zapisi ot masiva records vuv vunshniq
-		tekstovi fail records.txt. Ako vuznikne greshka vrushta false, inache vrushta true.
-		*/
+		
 		char sep = '_';
 		int i;
 		ofstream fs;
@@ -562,13 +1058,7 @@ int print_inv() {
 	}
 
 	bool load_data() {
-		/*
-		Publichna funkcia na klasa records_col, koiato zarezhda danni za zapisite v sklada ot vunshniq fail records.txt.
-		Failut se iz4ita liniq po liniq i vsiaka linia se razbiva na sustavnite i poleta.
-		Ako vuznikne greshka se izvezhda na ekrana tochno koia linia i pole sa greshni, sled koeto programata spira tai kato
-		osnovniq fail records.txt e povreden. Vsichki poleta na zapisite za zaprhiozhdavania i izpisvania se proveriavat.
-		Pri uspesh vrushta true inache false.
-		*/
+		
 		int i, iitemid, iwareloc;
 		float iqty;
 		time_t irecdate, iexpdate;
@@ -639,7 +1129,7 @@ int print_inv() {
 				return false;
 			}
 
-			//proverka na ime na porizvoditel
+			
 			if (getline(ss, inp, '_')) {
 				iproducer = inp;
 			}
@@ -648,7 +1138,7 @@ int print_inv() {
 				return false;
 			}
 
-			//proverka na skladovo miasto
+			
 			if (getline(ss, inp, '_')) {
 				try {
 					iwareloc = stoi(inp);
@@ -668,7 +1158,7 @@ int print_inv() {
 				return false;
 			}
 
-			//proverka na kolichestvoto
+		
 			if (getline(ss, inp, '_')) {
 				try {
 					iqty = stof(inp);
@@ -688,12 +1178,10 @@ int print_inv() {
 				return false;
 			}
 
-			//proverka na dopulnitelnite zabelzhki kum zapisa
+			
 			if (getline(ss, inp, '_')) inotes = inp;
 			else inotes = "";
 
-			//liniata ot tekstovia fail records.txt e proverena i otdelntie poleta se zapisvat
-			//v masiva records
 			records[num].itemid = iitemid;
 			records[num].recdate = irecdate;;
 			records[num].expdate = iexpdate;
@@ -708,14 +1196,11 @@ int print_inv() {
 	}
 };
 
-//inicializira se obekt rc ot klas records_col
+
 records_col rc(MAX_RECS);
 
 int records_menu() {
-	/*
-	Funkcia koiato pokzazva menuto za obrabotka na zapisite za prihod i razhod ot sklada.
-	Potrbiteliat triabva da vuvede niakoia ot sheste tochki na menuto.
-	*/
+	
 	char c;
 
 	do {
@@ -756,10 +1241,7 @@ int records_menu() {
 }
 
 int items_menu() {
-	/*
-	Funkcia koiato pokzazva menuto za obrabotka na artikulite v sklada.
-	Potrbiteliat triabva da vuvede niakoia ot chetirite tochki na menuto.
-	*/
+	
 	char c;
 
 	do {
@@ -791,20 +1273,15 @@ int items_menu() {
 }
 
 int main() {
-	/*
-	Osnovnata funkcia na programata
-	Pokzazva glavnoto menu na programata.
-	Potrbiteliat triabva da vuvede niakoia ot trite tochki na menuto.
-	*/
+	
 	char c;
 
-	//izchitat se dannite ot vunshnia fail items.txt
 	if (!ic.load_data()) {
 		cout << endl << "Error during loading items.txt! Program stopping!";
 		return 0;
 	}
 
-	//izchitat se dannite ot vunshnia fail records.txt	
+	
 	if (!rc.load_data()) {
 		cout << endl << "Error during loading records.txt! Program stopping!";
 		return 0;
@@ -831,13 +1308,12 @@ int main() {
 
 	} while (c != '3');
 
-	//zapisvat se dannite vuv vunshnia fail records.txt	
 	if (!rc.save_data())
 		cout << endl << "Error during saving data to records.txt!";
 
-	//zapisvat se dannite vuv vunshnia fail items.txt
+
 	if (!ic.save_data())
 		cout << endl << "Error during saving data to items.txt!";
 
 	return 0;
-}
+}		
