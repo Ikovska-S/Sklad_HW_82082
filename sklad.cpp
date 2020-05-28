@@ -12,6 +12,60 @@ using namaspece std;
 #include <algorithm>  
 
 
+#define MAX_ITEMS 100    
+#define MAX_RECS 1000    
+
+string date_str(time_t t) {
+	
+	struct tm* ti;
+	char buffer[11];
+
+	ti = localtime(&t);
+	strftime(buffer, 11, "%Y-%m-%d", ti);
+	string s(buffer);
+
+	return s;
+}
+
+int date_info(time_t t, struct tm* ti) {
+	
+	struct tm* tip;
+
+	tip = localtime(&t);
+
+	ti->tm_sec = 0;
+	ti->tm_min = 0;
+	ti->tm_hour = 0;
+	ti->tm_mday = tip->tm_mday;
+	ti->tm_mon = tip->tm_mon;
+	ti->tm_year = tip->tm_year;
+	ti->tm_wday = tip->tm_wday;
+	ti->tm_yday = tip->tm_yday;
+	ti->tm_isdst = 0;
+
+	return 0;
+}
+
+time_t today() {
+	
+	time_t t;
+	struct tm* tip, ti;
+	time(&t);
+	tip = localtime(&t);
+
+	ti.tm_sec = 0;
+	ti.tm_min = 0;
+	ti.tm_hour = 0;
+	ti.tm_mday = tip->tm_mday;
+	ti.tm_mon = tip->tm_mon;
+	ti.tm_year = tip->tm_year;
+	ti.tm_wday = tip->tm_wday;
+	ti.tm_yday = tip->tm_yday;
+	ti.tm_isdst = 0;
+
+	return mktime(&ti);
+}
+
 bool IsLeapYear(int year)
 {
 	
@@ -350,7 +404,6 @@ public:
 			if (line == "") continue;
 			istringstream ss(line);
 
-			//proverka na indexa na artikula
 			if (getline(ss, inp, '_')) {
 				try {
 					iitemid = stoi(inp);
@@ -369,7 +422,7 @@ public:
 				return false;
 			}
 
-			//proverka na imeto na artikula
+			
 			if (getline(ss, inp, '_')) {
 				if (inp == "") {
 					cout << endl << "Invalid item name at line " << i << " in file items.txt!";
@@ -430,7 +483,7 @@ public:
 				return false;
 			}
 
-			//sled kato poletata sa provereni se zapisvat v masiva items
+			/
 			items[num].name = iname;
 			items[num].um = ium;
 			items[num].defexperiod = iexp;
@@ -444,17 +497,9 @@ public:
 
 };
 
-//inicializira se obekt ic ot klas items_col
+
 items_col ic(MAX_ITEMS);
 
-//struktura koiato sudurzha dannite za otdelnite zaprihozhdavania i izpisvania ot sklada
-//dannite vkliuchvat itemid - indeks na artikul s dannite se svurzvat s drugiat osnoven masiv items
-//recdate - data na zapisa
-//expdate - data na godnost na artikula
-//producer - proizvoditel na artikula
-//wareloc - skladovo miasto
-//qty - kolichestvo ot artikula koeto e zaprihodeno ili izpisano saotvetno mozh da bude polozhitelno ili tricatelno
-//notes - zabelezhki kym zapisa
 struct record {
 	int itemid;
 	time_t recdate;
