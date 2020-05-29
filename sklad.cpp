@@ -1,22 +1,26 @@
-#include <iostream>
-using namaspece std;
 #define _CRT_SECURE_NO_WARNINGS
 
+//vkliuchvame slednite dopulnitelni header failove
 #include <sstream>
-#include <iostream> 
-#include <fstream>   
-#include <string>    
-#include <ctime>    
-#include <iomanip>   
-#include <vector>    
-#include <algorithm>  
+#include <iostream>  // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s konzolata
+#include <fstream>   // fail v koito sa opisani vsi4ki funkcii i klasove za s vunshni failove
+#include <string>    // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s simvolni nizove
+#include <ctime>     // fail v koito sa opisani vsi4ki funkcii i klasove za obrabotka na data i vreme
+#include <iomanip>   // izpolzvame samo edna funkcia get_time ot tozi header fail, za vuvezhdane na data ot potrebitelq
+#include <vector>    // fail v koito sa opisani vsi4ki funkcii i klasove za rabota s vector klasa
+#include <algorithm> // izpolzvame samo edna funkcia sort ot tozi header fail, za sortirane na vector masiv po opredeleno pole
 
+using namespace std; //zadavame std kato rabotno prostransvo po podrazbirane
 
-#define MAX_ITEMS 100    
-#define MAX_RECS 1000    
+#define MAX_ITEMS 100    //konstanta koiato opredelq maksimalniq dopustim broj artikuli
+#define MAX_WARELOCS 100 //konstanta koiato opredelq maksimalniq dopustim broj skladovi mesta 
+#define MAX_RECS 1000    //konstanta koiato opredelq maksimalniq dopustim broj zapisi na zaprihozdavani i izpisvaniq v sklada 
 
 string date_str(time_t t) {
-	
+	/*
+	Spomagatelna fukciq za preobrazuvane na predadenata data t v format time_t
+	kum tekstova data v format "yyyy-mm-dd".
+	*/
 	struct tm* ti;
 	char buffer[11];
 
@@ -28,7 +32,24 @@ string date_str(time_t t) {
 }
 
 int date_info(time_t t, struct tm* ti) {
-	
+	/*
+	Spomagatelna fukciq za preobrazuvane na data sudurzhashta se v time_t promenliva t
+	kum struktura v format tm. Tai kato funkciata vrushta samo datata, infromaciata za
+	chasa se nulira.
+
+	struct tm {
+		tm_sec	int	seconds after the minute	0-61*
+		tm_min	int	minutes after the hour		0-59
+		tm_hour	int	hours since midnight		0-23
+		tm_mday	int	day of the month			1-31
+		tm_mon	int	months since January		0-11
+		tm_year	int	years since 1900
+		tm_wday	int	days since Sunday			0-6
+		tm_yday	int	days since January 1		0-365
+		tm_isdst	int	Daylight Saving Time flag
+	};
+
+	*/
 	struct tm* tip;
 
 	tip = localtime(&t);
@@ -47,7 +68,10 @@ int date_info(time_t t, struct tm* ti) {
 }
 
 time_t today() {
-	
+	/*
+	spomagatelna fukciq, koiato vruzhta dneshna data v format time_t. Tai kato funkciata vrushta
+	samo datata, infromaciata za chasa se nulira.
+	*/
 	time_t t;
 	struct tm* tip, ti;
 	time(&t);
@@ -66,9 +90,13 @@ time_t today() {
 	return mktime(&ti);
 }
 
+
 bool IsLeapYear(int year)
 {
-	
+	/*
+	spomagatelna fukciq, koiato opredelia predadenata kato parametar godina dali e
+	visokosna ili ne
+	*/
 	if (year % 4 != 0) return false;
 	if (year % 400 == 0) return true;
 	if (year % 100 == 0) return false;
@@ -76,7 +104,11 @@ bool IsLeapYear(int year)
 }
 
 time_t build_expdate(time_t irecdate, int experiod) {
-	
+	/*
+	spomagatelna fukciq, koiato dobavia opredelen broi meseci predadeni v parametura experiod
+	kum datata irecdate v format time_t i vrushta izchislenata data v format time_t. Fukciata se
+	izpolzva za izchisliavane na sroka na godnost na daden artikul postupil v sklada.
+	*/
 	struct tm ti;
 	int d, m, y;
 	int daysInMonths[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -112,41 +144,61 @@ time_t build_expdate(time_t irecdate, int experiod) {
 	return mktime(&ti);
 }
 
-
+/*
+Struktura sudurzhashta danni za vseki edin artikul v sklada. V sluchaia se
+zapisvat naimenovanie, merna edinica i srok na godnost po podrazbirane
+na artikula.
+*/
 struct item {
 	string name;
 	string um;
 	int defexperiod;
 };
 
-
+/*
+Klasut items_col predostavia razlichni funkcii za upravlenie(dobaviane, redaktirane, printirane)
+na vsi4ki artikuli na sklada.
+*/
 class items_col {
 
-	
+	//chastni funkcii i promenlivi
 private:
-	item* items; 
+	item* items; //ukazatel kum masiv ot strukturi ot tip item
 
-
+//publichni funkcii i promenlivi
 public:
-	int cap; 
-	int num; 
+	int cap; //promenliva tip int, koiato sudurzha maksimalniq broi elementi na masiva items
+	int num; //promenliva tip int, koiato sudurzha tekushtiq broi elementi na masiva items
 
 	items_col(int pcap) {
-		
+		/*
+		konstruktor na klasut items_col. Ima edin parametur pcap koito opredelia razmera na masiva ot item
+		koito shte se inicializira v pametta
+		*/
+
+		//inicializirat se vsichki promenlivi
 		cap = pcap;
 		num = 0;
-		items = new item[cap]; 
+		items = new item[cap]; //inicializira se masiv ot cap elementa tip item v pameta na programata
+							   //i se prisvoiavat na ukazatelia items
 	}
 
 	~items_col() {
-		
+		/*
+		destruktor na klasut items_col
+		*/
 
-		
+		//masivat items se iztriva ot pametta na programata
 		delete[] items;
 	}
 
 	int input_item() {
-		
+		/*
+		Publichna funkcia na klasa items_col, chrez koiato potrebitelia vuvezhda parametrite na nov
+		artikul. Vseki parametur se proveriava za validnost.
+		*/
+
+		//inicializirane na promenlivite
 		string inp, iname, ium;
 		int i, iexp;
 		bool repeat;
@@ -159,6 +211,11 @@ public:
 
 		repeat = true;
 
+		//purvo se vuvezhda naimenovanie na novia artikul, kato to triabva da e unikalno
+		//potrebitelia mozhe da vuvede . za otkaz ot procedurata ili < za vrushtane stupka nazad
+		//imeto na artikula se sravniava sus vsichki veche vuvdeni artikuli v masiva items
+		//i ako se otkrie artikul sus sushtoto ime se izvezhda greshka
+		//potrebitelia vuvezhda danni dokato ne vuvede pravilno ime ili se otkazhe
 		do {
 			cout << endl << "Item name[. cancel, < back]: ";
 			getline(cin, inp);
@@ -181,7 +238,9 @@ public:
 
 			iname = inp;
 
-			
+			//sled tova potrbiteliat triabva da vuvede merna edinica na artikula
+			//mernata edinica triabva da suvpada s niakoi ot predvaritelno izbroenite merni edinici v
+			//masiva um[]
 			do {
 				cout << endl << "Unit of measurement[. cancel, < back]: ";
 				getline(cin, inp);
@@ -197,7 +256,7 @@ public:
 
 				ium = um[i];
 
-				
+				//posledno potrebiteliat vuvezhda srok na godnost po podrazbirane v meseci
 				do {
 					cout << endl << "Default expire period in months[. cancel, < back]: ";
 					getline(cin, inp);
@@ -213,7 +272,7 @@ public:
 						continue;
 					}
 
-					
+					//nakraia na funkciata dannite se zapazvat v masiva items i se izvezhda saobshtenie za uspeshen zapis
 					items[num].name = iname;
 					items[num].um = ium;
 					items[num].defexperiod = iexp;
@@ -235,7 +294,12 @@ public:
 	}
 
 	int edit_item() {
-	
+		/*
+		Publichna funkcia na klasa items_col, chrez koiato potrebitelia redaktira opredelen ot nego
+		artikul. Vseki parametur se proveriava za validnost. Pri vuvezhdane na prazen niz ili klavish enter
+		dadeniq parametur se zapazva.
+		*/
+
 		bool repeat;
 		int i, iitemid, iexp;
 		string inp, iname, ium;
@@ -243,7 +307,8 @@ public:
 
 		repeat = true;
 
-		
+		// purvo se iziskva ot potrebitelia da vuvede index na artikul koito shte se redaktira
+		// potrebitelia mozhe da vidi vsichi artikuli kato vuvede ?
 		do {
 			cout << endl << "Enter item index to edit[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -269,7 +334,7 @@ public:
 				}
 			}
 
-							
+			//sled kato e opredelen artikulat ot potrebitelia se iska da vuvede novoto ime				
 			do {
 				cout << endl << "Enter new item name[. cancel, < back, ENTER remains " << items[iitemid].name << "]: ";
 				getline(cin, inp);
@@ -289,7 +354,7 @@ public:
 
 					iname = inp;
 				}
-				
+				//potrebitelia triabva da vuvede nova merna edinica za artikula 
 				do {
 					cout << endl << "Enter new unit of measurement[. cancel, < back, ENTER remains " << items[iitemid].um << "]: ";
 					getline(cin, inp);
@@ -306,7 +371,7 @@ public:
 						ium = inp;
 					}
 
-					 
+					//potrebitelia triabva da vuvede nov srok na godnost na artikula 
 					do {
 						cout << endl << "Enter new default expire period[. cancel, < back, ENTER remains " << items[iitemid].defexperiod << " months]: ";
 						getline(cin, inp);
@@ -324,7 +389,7 @@ public:
 							}
 						}
 
-						
+						//sled kato vsichki novi parametri na artikula sa opredeleni to se obnoviava v masiva items
 						items[iitemid].name = iname;
 						items[iitemid].um = ium;
 						items[iitemid].defexperiod = iexp;
@@ -345,12 +410,14 @@ public:
 	}
 
 	int show_items() {
-		
+		/*
+		Publichna funkcia na klasa items_col, chrez koiato se izvezhda spisuk na vsichki vuvedeni artikuli zaedno s tehnite parametri
+		*/
 
 
 		cout << endl << "List of items:";
 
-		
+		//izbrozhda se vuvedenite elementi na masiva items
 		for (int i = 0; i < num; i++)
 			cout << endl << "Index:" << i << ",Item name:" << items[i].name << ",Unit of measurement:" << items[i].um << ",Default expire period:" << items[i].defexperiod << " months";
 
@@ -359,19 +426,23 @@ public:
 	}
 
 	item* get_item_by_index(int idx) {
-		blichna funkcia na klasa items_col, koiato vrushta ukazatel kum artikul s index raven na parametura idx
-		
+		/*
+		Publichna funkcia na klasa items_col, koiato vrushta ukazatel kum artikul s index raven na parametura idx
+		*/
 		return &items[idx];
 	}
 
 	bool save_data() {
-*/
+		/*
+		Publichna funkcia na klasa items_col, koiato zapazva vsichki vuvedeni artikuli ot masiva items vuv vunshniq
+		tekstovi fail items.txt. Ako vuznikne greshka vrushta false, inache vrushta true.
+		*/
 
 		char sep = '_';
 		int i;
 		ofstream fs;
 
-		
+		//otvariane na faila items.txt za zapis
 		fs.open("items.txt");
 
 		if (fs.fail()) return false;
@@ -383,13 +454,18 @@ public:
 	}
 
 	bool load_data() {
-		
+		/*
+		Publichna funkcia na klasa items_col, koiato zarezhda danni za artikulite ot vunshniq fail items.txt.
+		Failut se iz4ita liniq po liniq i vsiaka linia se razbiva na sustavnite i poleta.
+		Ako vuznikne greshka se izvezhda na ekrana tochno koia linia i pole sa greshni, sled koeto programata spira tai kato
+		osnovniq fail items.txt e povreden. Vsichki poleta na artikulite se proveriavat. Pri uspesh vrushta true inache false.
+		*/
 		int i, j, iitemid, iexp;
 		string line, inp, iname, ium;
 		string um[] = { "pcs","kg","g","m","cm" };
 		ifstream fs;
 
-		
+		//otvariane na faila items.txt za chetene
 		fs.open("items.txt");
 		if (fs.fail()) return true;
 		i = 0;
@@ -404,6 +480,7 @@ public:
 			if (line == "") continue;
 			istringstream ss(line);
 
+			//proverka na indexa na artikula
 			if (getline(ss, inp, '_')) {
 				try {
 					iitemid = stoi(inp);
@@ -422,7 +499,7 @@ public:
 				return false;
 			}
 
-			
+			//proverka na imeto na artikula
 			if (getline(ss, inp, '_')) {
 				if (inp == "") {
 					cout << endl << "Invalid item name at line " << i << " in file items.txt!";
@@ -445,7 +522,7 @@ public:
 				return false;
 			}
 
-			
+			//proverka na mernata edinica
 			if (getline(ss, inp, '_')) {
 				if (inp == "") {
 					cout << endl << "Invalid item unit of measurement at line " << i << " in file items.txt!";
@@ -468,7 +545,7 @@ public:
 				return false;
 			}
 
-			
+			//proverka na sroka na gosnost po podrazbirane
 			if (getline(ss, inp, '_')) {
 				try {
 					iexp = stoi(inp);
@@ -483,7 +560,7 @@ public:
 				return false;
 			}
 
-			/
+			//sled kato poletata sa provereni se zapisvat v masiva items
 			items[num].name = iname;
 			items[num].um = ium;
 			items[num].defexperiod = iexp;
@@ -497,9 +574,17 @@ public:
 
 };
 
-
+//inicializira se obekt ic ot klas items_col
 items_col ic(MAX_ITEMS);
 
+//struktura koiato sudurzha dannite za otdelnite zaprihozhdavania i izpisvania ot sklada
+//dannite vkliuchvat itemid - indeks na artikul s dannite se svurzvat s drugiat osnoven masiv items
+//recdate - data na zapisa
+//expdate - data na godnost na artikula
+//producer - proizvoditel na artikula
+//wareloc - skladovo miasto
+//qty - kolichestvo ot artikula koeto e zaprihodeno ili izpisano saotvetno mozh da bude polozhitelno ili tricatelno
+//notes - zabelezhki kym zapisa
 struct record {
 	int itemid;
 	time_t recdate;
@@ -510,7 +595,11 @@ struct record {
 	string notes;
 };
 
-
+//spogatelna struktura inventory v koiato se grupira informacia za nalichnostite v sklada
+//itemid - index na artikul
+//wareloc - skladovo miasto
+//expdate - data na godnost na artikula
+//wareloc - sumarno kolichestvo za dadenia artikul i skladovo miasto
 struct inventory {
 	int itemid;
 	int wareloc;
@@ -518,25 +607,32 @@ struct inventory {
 	float qty;
 };
 
-
+//spomagatelna funkcia koeto se izpolzva ot fumckiata sort za sortirane na vektornia masiv sudurzhasht nalichnostite v sklada
+//v sluchaia dannite se sortirat po indeks na artikul i data na godnost v vuzhodiash red
 bool sortby_item_expiredate(inventory a, inventory b)
 {
 	if (a.itemid == b.itemid) return a.expdate < b.expdate;
 	else return a.itemid < b.itemid;
 }
 
-/
+//vtoria osnoven klas v programata records_col, koito sudurzha funkcii za upravlenieto 
+//na zapisite za zaprihozhdavania i izpisvania ot sklada
 class records_col {
-	
+	//chastni funkcii i promenlivi v klasa
 private:
-	
+	//masiv ot goreopisanata struktura record, tuk se zapisvat cialata hronologia na dvizheniata v sklada
 	record* records;
 
-	
+	//spomagatelen vektoren masiv koito se generira na baza vsichki zapisi ot records
 	vector<inventory> vinventory;
 
 	int build_inv(int itemid) {
-		
+		/*
+		Spomagatelna fukncia chastna za klasa s koiato se generira vektorniq masiv vinventory.
+		V nego se izchisliavat vsichki nalichnosti ili za opredelen artikul v sklada, kato dannite se
+		bazirat na hronologichnite zapisi na prihod i razhod v masiva records.
+		Nalichnostite se grupirat po indeks na artikul i skladovo miasto.
+		*/
 		int i, j;
 		inventory rinventory;
 
@@ -570,27 +666,30 @@ private:
 		return 0;
 	}
 
-		
+	//publichni funkcii i promenlivi v klasa	
 public:
-	
+	//maksimalniqt broi zapisi za dvizhenia v sklada
 	int cap;
-	
+	//tekushtiq broi zapisi za dvizhenia v sklada
 	int num;
 
-	
+	//konstruktor na klasa,v koito se generira masiva records sudurzhasht vsichkite zapisi na sklada
 	records_col(int pcap) {
 		cap = pcap;
 		num = 0;
 		records = new record[cap];
 	}
 
-	
+	//destruktor na klasa, koito osvobozhdava ot pameta masiva s zapisite records
 	~records_col() {
 		delete[] records;
 	}
 
 	int print_inv() {
-		
+		/*
+		Publichna fukncia na klasa koiato izvezhda danni za nalichnostite v sklada.
+		Za celta se izpolzva chastnata spomagatelna funkcia na klasa build_inv s parametur vsichki artikuli
+		*/
 		int i;
 		item* pitem;
 
@@ -607,7 +706,9 @@ public:
 	}
 
 	int add_inv() {
-		
+		/*
+		Publichna fukncia na klasa koiato dobavia nov zapis za zaprihozhdavane na artikuli v sklada.
+		*/
 		item* pitem;
 		bool repeat, warelocavail;
 		int i, j, iitemid, iexperiod, iwareloc, idefwareloc;
@@ -615,14 +716,15 @@ public:
 		string inp, iproducer, inotes;
 		float iqty;
 
-		
+		//proverka dali veche ne dostignat maksimalnia broi zapisi opredelen ot konstantata MAX_RECS
 		if (num >= cap) {
 			cout << endl << "Maximum number of records already entered!";
 			return 0;
 		}
 
 		repeat = true;
-		
+		//vuvezhdane ot potrebitelia i proverka na indeks na artikul
+		//potrebitelia mozhe da vidi spisak na vuvedenite artikuli s ?
 		do {
 			cout << endl << "Enter item index[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -653,7 +755,8 @@ public:
 			pitem = ic.get_item_by_index(iitemid);
 			cout << endl << "Item: " << pitem->name << " selected.";
 			irecdate = today();
-			
+			//vuvezhdane ot potrebitelia i proverka na srok na godnost
+			//po podrazbirane se predlaga sroka na godnost vuveden za dadenia artikul
 			do {
 				cout << endl << "Enter expire period in months[. cancel, < back, <ENTER> default " << pitem->defexperiod << " months]: ";
 				getline(cin, inp);
@@ -672,7 +775,8 @@ public:
 				}
 
 				iexpdate = build_expdate(irecdate, iexperiod);
-				
+				//vuvezhdane ot potrebitelia i proverka na ime na proizvoditel
+				do {
 					cout << endl << "Enter producer name[. cancel, < back]: ";
 					getline(cin, inp);
 
@@ -680,7 +784,7 @@ public:
 					else if (inp == "<") break;
 					else iproducer = inp;
 
-					
+					//vuvezhdane ot potrebitelia i proverka na kolichestvo za zaprihozhdavane
 					do {
 						cout << endl << "Enter quantity to add[. cancel, < back]: ";
 						getline(cin, inp);
@@ -723,7 +827,9 @@ public:
 							continue;
 						}
 
-						
+						//vuvezhdane ot potrebitelia i proverka na skladovo miasto
+						//na ekrana se izvezhdat vskichki skladovi lokacii s podobna data na godnost
+						//po podrazbirane se predlaga skladovo miasto s nai nisuk indeks
 						do {
 							cout << endl << "Available warehouse locations with same expiration date:";
 							for (i = 0; i < vinventory.size(); i++)
@@ -769,7 +875,9 @@ public:
 								else if (inp == "<") break;
 								else inotes = inp;
 
-								
+								//sled kato vsichki parametri na zapisa sa vuvedeni i provereni
+								//te se zapisvat kato novo zaprihozhdavane v masiva s skladovi zapisi records;
+								//potrebitelia se informira za uspeshno napravenia zapis
 								records[num].itemid = iitemid;
 								records[num].recdate = irecdate;
 								records[num].expdate = iexpdate;
@@ -798,7 +906,9 @@ public:
 	}
 
 	int remove_inv() {
-		
+		/*
+		Publichna fukncia na klasa koiato dobavia nov zapis za izpisvane na artikuli ot sklada.
+		*/
 		item* pitem;
 		bool repeat;
 		int i, iitemid, iwareloc, iunloadid;
@@ -806,14 +916,15 @@ public:
 		string inp, iproducer, inotes;
 		float iqty;
 
-		
+		//proverka dali veche ne dostignat maksimalnia broi zapisi opredelen ot konstantata MAX_RECS
 		if (num >= cap) {
 			cout << endl << "Maximum number of records already entered!";
 			return 0;
 		}
 
 		repeat = true;
-					
+		//vuvezhdane ot potrebitelia i proverka na indeks na artikul
+		//potrebitelia mozhe da vidi spisak na vuvedenite artikuli s ?			
 		do {
 			cout << endl << "Enter item index[. cancel, < back, ? list of items]: ";
 			getline(cin, inp);
@@ -851,7 +962,9 @@ public:
 
 			irecdate = today();
 
-			/
+			//vuvezhdane ot potrebitelia i proverka na skladovo miasto
+			//na ekrana se izvezhdat vskichki skladovi lokacii s polozhitelni nalichnosti
+			//po podrazbirane se predlaga skladovo miasto s nalichnost chiato data na godnost izticha nai skoro
 			do {
 				cout << endl << "Available quantities in different warehouse locations:";
 				for (i = 0; i < vinventory.size(); i++)
@@ -888,8 +1001,8 @@ public:
 
 					iunloadid = i;
 				}
-				 
-				
+				//vuvezhdane ot potrebitelia i proverka na kolichestvo za izpisvane, to ne triabva da e po goliamo ot 
+				//nalichnoto v momenta na goreopredelenoto skladovo miasto
 				do {
 					cout << endl << "Enter quantity to remove from location[. cancel, < back]: ";
 					getline(cin, inp);
@@ -916,7 +1029,7 @@ public:
 						}
 					}
 
-				
+					//vuvezhdane ot potrebitelia i proverka na dopulnitelni zabelezhki kum zapisa
 					do {
 						cout << endl << "Enter additional notes for the record[. cancel, < back]: ";
 						getline(cin, inp);
@@ -925,7 +1038,9 @@ public:
 						else if (inp == "<") break;
 						else inotes = inp;
 
-					
+						//sled kato vsichki parametri na zapisa sa vuvedeni i provereni
+						//te se zapisvat kato novo izpisvane v masiva s skladovi zapisi records;
+						//potrebitelia se informira za uspeshno napravenia zapis
 						records[num].itemid = iitemid;
 						records[num].recdate = irecdate;
 						records[num].expdate = vinventory[iunloadid].expdate;
@@ -953,7 +1068,10 @@ public:
 	}
 
 	int show_records() {
-		
+		/*
+		Publichna fukncia na klasa koiato pokzava vsizhki zapisi ot masiva records ,koito imat data
+		na zapis v period s nachalna i kraina data opredeleni ot potrebitelia.
+		*/
 		int i;
 		time_t istart, iend;
 		struct tm ti_start, ti_end;
@@ -961,7 +1079,7 @@ public:
 		string inp;
 		bool repeat;
 
-		
+		//vuvezhdane i proverka na nachalnata data na perioda spravkata
 		do {
 			istart = time(0);
 			date_info(istart, &ti_start);
@@ -989,7 +1107,7 @@ public:
 				istart = mktime(&ti_start);
 			}
 
-						
+			//vuvezhdane i proverka na krainata data na perioda spravkata				
 			do {
 				iend = time(0);
 				date_info(iend, &ti_end);
@@ -1045,7 +1163,9 @@ public:
 	}
 
 	int clean_inv() {
-	
+		/*
+		Publichna fukncia na klasa, koiato izpisva vsichki nalichnosti s iztekul srok na godnost ot sklada
+		*/
 		int i;
 		time_t irecdate, iexpdate;
 		string inp;
@@ -1054,10 +1174,12 @@ public:
 		irecdate = today();
 		iexpdate = irecdate;
 
-		
+		//generirat se nalichnostite v sklada po artikul i skladovo miasto
 		build_inv(MAX_ITEMS);
-		
+		//nalichnostite se sortirat po artikul i data na godnost
 		sort(vinventory.begin(), vinventory.end(), sortby_item_expiredate);
+		
+		//na ekrana se izvezhdat vsichki nalichnosti s iztekul srok na godnost
 		cout << endl << "The following items are expired:";
 		for (i = 0; i < vinventory.size(); i++)
 			if (vinventory[i].qty > 0 && vinventory[i].expdate <= iexpdate) {
@@ -1065,10 +1187,12 @@ public:
 				cout << endl << "Item:" << pitem->name << ", Warehouse Location:" << vinventory[i].wareloc << ", Expire Date:" << date_str(vinventory[i].expdate) << ", Quantity:" << vinventory[i].qty;
 			}
 
+		//potrebitelia trabva da potvurdi izpisvaneto
 		cout << endl << "Are you sure you want to clear them? [Y/N]:";
 		getline(cin, inp);
 
-		
+		//sled kato potrebitelia potvurdi spisuka s izteklite nalichnosti ot vektornia masiv vinventory
+		//se izbrozhda i se zapisvat kato razhod v masiva records
 		if (inp == "y" || inp == "Y") {
 			for (i = 0; i < vinventory.size(); i++)
 				if (vinventory[i].qty > 0 && vinventory[i].expdate <= iexpdate) {
@@ -1087,7 +1211,10 @@ public:
 	}
 
 	bool save_data() {
-		
+		/*
+		Publichna funkcia na klasa records_col, koiato zapazva vsichki zapisi ot masiva records vuv vunshniq
+		tekstovi fail records.txt. Ako vuznikne greshka vrushta false, inache vrushta true.
+		*/
 		char sep = '_';
 		int i;
 		ofstream fs;
@@ -1103,7 +1230,13 @@ public:
 	}
 
 	bool load_data() {
-		
+		/*
+		Publichna funkcia na klasa records_col, koiato zarezhda danni za zapisite v sklada ot vunshniq fail records.txt.
+		Failut se iz4ita liniq po liniq i vsiaka linia se razbiva na sustavnite i poleta.
+		Ako vuznikne greshka se izvezhda na ekrana tochno koia linia i pole sa greshni, sled koeto programata spira tai kato
+		osnovniq fail records.txt e povreden. Vsichki poleta na zapisite za zaprhiozhdavania i izpisvania se proveriavat.
+		Pri uspesh vrushta true inache false.
+		*/
 		int i, iitemid, iwareloc;
 		float iqty;
 		time_t irecdate, iexpdate;
@@ -1174,7 +1307,7 @@ public:
 				return false;
 			}
 
-			
+			//proverka na ime na porizvoditel
 			if (getline(ss, inp, '_')) {
 				iproducer = inp;
 			}
@@ -1183,7 +1316,7 @@ public:
 				return false;
 			}
 
-			
+			//proverka na skladovo miasto
 			if (getline(ss, inp, '_')) {
 				try {
 					iwareloc = stoi(inp);
@@ -1203,7 +1336,7 @@ public:
 				return false;
 			}
 
-		
+			//proverka na kolichestvoto
 			if (getline(ss, inp, '_')) {
 				try {
 					iqty = stof(inp);
@@ -1223,10 +1356,12 @@ public:
 				return false;
 			}
 
-			
+			//proverka na dopulnitelnite zabelzhki kum zapisa
 			if (getline(ss, inp, '_')) inotes = inp;
 			else inotes = "";
 
+			//liniata ot tekstovia fail records.txt e proverena i otdelntie poleta se zapisvat
+			//v masiva records
 			records[num].itemid = iitemid;
 			records[num].recdate = irecdate;;
 			records[num].expdate = iexpdate;
@@ -1241,11 +1376,14 @@ public:
 	}
 };
 
-
+//inicializira se obekt rc ot klas records_col
 records_col rc(MAX_RECS);
 
 int records_menu() {
-	
+	/*
+	Funkcia koiato pokzazva menuto za obrabotka na zapisite za prihod i razhod ot sklada.
+	Potrbiteliat triabva da vuvede niakoia ot sheste tochki na menuto.
+	*/
 	char c;
 
 	do {
@@ -1286,7 +1424,10 @@ int records_menu() {
 }
 
 int items_menu() {
-	
+	/*
+	Funkcia koiato pokzazva menuto za obrabotka na artikulite v sklada.
+	Potrbiteliat triabva da vuvede niakoia ot chetirite tochki na menuto.
+	*/
 	char c;
 
 	do {
@@ -1318,15 +1459,20 @@ int items_menu() {
 }
 
 int main() {
-	
+	/*
+	Osnovnata funkcia na programata
+	Pokzazva glavnoto menu na programata.
+	Potrbiteliat triabva da vuvede niakoia ot trite tochki na menuto.
+	*/
 	char c;
 
+	//izchitat se dannite ot vunshnia fail items.txt
 	if (!ic.load_data()) {
 		cout << endl << "Error during loading items.txt! Program stopping!";
 		return 0;
 	}
 
-	
+	//izchitat se dannite ot vunshnia fail records.txt	
 	if (!rc.load_data()) {
 		cout << endl << "Error during loading records.txt! Program stopping!";
 		return 0;
@@ -1353,12 +1499,14 @@ int main() {
 
 	} while (c != '3');
 
+	//zapisvat se dannite vuv vunshnia fail records.txt	
 	if (!rc.save_data())
 		cout << endl << "Error during saving data to records.txt!";
 
-
+	//zapisvat se dannite vuv vunshnia fail items.txt
 	if (!ic.save_data())
 		cout << endl << "Error during saving data to items.txt!";
 
 	return 0;
-}		
+}
+
