@@ -16,6 +16,7 @@ using namespace std; //zadavame std kato rabotno prostransvo po podrazbirane
 #define MAX_WARELOCS 100 //konstanta koiato opredelq maksimalniq dopustim broj skladovi mesta 
 #define MAX_RECS 1000    //konstanta koiato opredelq maksimalniq dopustim broj zapisi na zaprihozdavani i izpisvaniq v sklada 
 
+
 string date_str(time_t t) {
 	/*
 	Spomagatelna fukciq za preobrazuvane na predadenata data t v format time_t
